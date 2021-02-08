@@ -43,8 +43,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="javascript:void(0)" class="btn btn-success" id="xinzengfenlei" data-toggle="modal"
-                                data-target="#myModal">新增分类</a>
+                            <a href="javascript:void(0)" class="btn btn-success" id="xinzengfenlei" data-toggle="modal" data-target="#myModal">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
@@ -53,3 +52,26 @@
     </div>
 
 </html>
+<script type="text/html" id="category">
+    {{each data v}}
+    <tr>
+        <td>{{v.name}}</td>
+        <td>{{v.slug}}</td>
+        <td class="text-center">
+            <a href="javascript:void(0)" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
+            <a href="javascript:void(0)" data-it={{v.id}} class="btn btn-danger btn-xs">删除</a>
+        </td>
+    </tr>
+    {{/each}}
+</script>
+<script src="./libs/http.js"></script>
+<script>
+    $.ajax({
+        type: 'get',
+        url: BigNew.category_list,
+        success(backData) {
+            let res = template('category', backData)
+            let tbody = $('tbody').html(res)
+        }
+    })
+</script>
