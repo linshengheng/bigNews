@@ -31,23 +31,44 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr>
-                        <td>奇趣事</td>
-                        <td>funny</td>
-                        <td class="text-center">
-                            <a href="javascript:void(0)" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
-                            <a href="javascript:void(0)" class="btn btn-danger btn-xs">删除</a>
-                        </td>
-                    </tr>
+
                 </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="3" class="text-center">
-                            <a href="javascript:void(0)" class="btn btn-success" id="xinzengfenlei" data-toggle="modal" data-target="#myModal">新增分类</a>
+                            <a href="javascript:void(0)" class="btn btn-success" id="xinzengfenlei">新增分类</a>
                         </td>
                     </tr>
                 </tfoot>
             </table>
+        </div>
+    </div>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel"></h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">名称</label>
+                            <input type="text" class="form-control" id="recipient-name">
+                            <input type="hidden" class="hidden">
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">分类</label>
+                            <textarea class="form-control" id="message-text"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary"></button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -58,20 +79,92 @@
         <td>{{v.name}}</td>
         <td>{{v.slug}}</td>
         <td class="text-center">
-            <a href="javascript:void(0)" data-toggle="modal" class=" btn btn-info btn-xs">编辑</a>
-            <a href="javascript:void(0)" data-it={{v.id}} class="btn btn-danger btn-xs">删除</a>
+            <a href="javascript:void(0)" data-toggle="modal" data-id={{v.id}} class=" btn btn-info btn-xs">编辑</a>
+            <a href="javascript:void(0)" data-id={{v.id}} class="btn btn-danger btn-xs delete">删除</a>
         </td>
     </tr>
     {{/each}}
 </script>
 <script src="./libs/http.js"></script>
 <script>
-    $.ajax({
-        type: 'get',
-        url: BigNew.category_list,
-        success(backData) {
-            let res = template('category', backData)
-            let tbody = $('tbody').html(res)
+    $(function() {
+        $('tbody').on('click', '.btn-info', function() {
+            // console.log($(this).parent().prevAll().eq(0).text())
+            $('#exampleModalLabel').text('编辑分类')
+            $('.btn-primary').text('编辑')
+            $('.btn-primary').addClass('btn-success')
+            $('#recipient-name').val($(this).parent().prevAll().eq(1).text())
+            $('#message-text').val($(this).parent().prevAll().eq(0).text())
+            $('#myModal').modal('show')
+            $('.hidden').val($(this).attr('data-id'))
+                // console.log(111);
+        })
+        $('#xinzengfenlei').click(function() {
+            $('#exampleModalLabel').text('新增分类')
+            $('.btn-primary').removeClass('btn-success')
+            $('.btn-primary').text('新增')
+            $('#recipient-name').val('')
+            $('#message-text').val('')
+            $('#myModal').modal('show')
+        })
+
+        function ajax() {
+            $.ajax({
+                type: 'get',
+                url: BigNew.category_list,
+                success(backData) {
+                    let res = template('category', backData)
+                    let tbody = $('tbody').html(res)
+                }
+            })
         }
+        ajax()
+
+        $('.btn-primary').click(function() {
+            if ($('#recipient-name').val() == '' || $('#message-text').val() == '') {
+                alert('请填写完全')
+                return
+            }
+            if ($(this).text() == '新增') {
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.category_add,
+                    data: {
+                        name: $('#recipient-name').val(),
+                        slug: $('#message-text').val(),
+                    },
+                    success(backData) {
+                        $('#myModal').modal('hide')
+                        ajax()
+                    }
+                })
+            } else {
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.category_edit,
+                    data: {
+                        id: $('.hidden').val(),
+                        name: $('#recipient-name').val(),
+                        slug: $('#message-text').val(),
+                    },
+                    success(backData) {
+                        $('#myModal').modal('hide')
+                        ajax()
+                    }
+                })
+            }
+        })
+        $('tbody').on('click', '.delete', function() {
+            $.ajax({
+                type: 'post',
+                url: BigNew.category_delete,
+                data: {
+                    id: $(this).attr('data-id')
+                },
+                success(backData) {
+                    ajax()
+                }
+            })
+        })
     })
 </script>
