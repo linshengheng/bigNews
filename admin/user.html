@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/iconfont.css">
     <link rel="stylesheet" href="css/main.css">
     <script src="./libs/jquery-1.12.4.min.js"></script>
+    <script src="./libs/http.js"></script>
 
 </head>
 
@@ -24,19 +25,19 @@
                 <div class="form-group">
                     <label for="inputEmail1" class="col-sm-2 control-label">用户名称：</label>
                     <div class="col-sm-4">
-                        <input type="text" name="username" class="form-control username" id="inputEmail1" value="李思思">
+                        <input type="text" name="username" class="form-control username" id="inputEmail1" value="">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail2" class="col-sm-2 control-label">昵称：</label>
                     <div class="col-sm-4">
-                        <input type="text" name="nickname" class="form-control nickname" id="inputEmail2" value="哈哈思">
+                        <input type="text" name="nickname" class="form-control nickname" id="inputEmail2" value="">
                     </div>
                 </div>
                 <div class="form-group">
                     <label for="inputEmail3" class="col-sm-2 control-label">邮箱：</label>
                     <div class="col-sm-4">
-                        <input type="text" name="email" class="form-control email" id="inputEmail3" value="520@163.com">
+                        <input type="text" name="email" class="form-control email" id="inputEmail3" value="">
                     </div>
                 </div>
 
@@ -56,8 +57,7 @@
                 <div class="form-group">
                     <label for="inputEmail4" class="col-sm-2 control-label">密码：</label>
                     <div class="col-sm-4">
-                        <input type="password" name="password" class="form-control password" id="inputEmail4"
-                            value="12345678">
+                        <input type="password" name="password" class="form-control password" id="inputEmail4" value="">
                     </div>
                 </div>
                 <div class="form-group">
@@ -69,5 +69,67 @@
         </div>
     </div>
 </body>
+<script>
+    $(function() {
+        $.ajax({
+            type: 'get',
+            url: BigNew.user_detail,
+            success(data) {
+                console.log(data.data.userPic)
+                $('.username').val(data.data.username)
+                $('.nickname').val(data.data.nickname)
+                $('.email').val(data.data.email)
+                $('.password').val(data.data.password)
+                $('.user_pic').attr('src', data.data.userPic)
+            }
+        })
+        $('.col-sm-10>input').change(function() {
+            let filename = $(this)[0].files[0]
+            let urlname = URL.createObjectURL(filename)
+            $('.col-sm-10>img').eq(0).attr('src', urlname)
+        })
+        $('.btn-edit').on('click', function(e) {
+            e.preventDefault()
+            let fd = new FormData(document.querySelector('form'))
+            $.ajax({
+                type: 'post',
+                url: BigNew.user_edit,
+                contentType: false,
+                processData: false,
+                data: fd,
+                success(backData) {
+                    // console.log(backData)
+                    if (backData.code == 200) {
+                        // parent.window.location.reload()
+                        $.ajax({
+                            type: 'get',
+                            url: BigNew.user_info,
+                            // headers: {
+                            //     'Authorization': localStorage.getItem('token')
+                            // },
+                            success(data) {
+                                console.log(111)
+                                if (data.code == 200) {
+                                    parent.$('.user_info').children('img').attr('src',
+                                        data
+                                        .data.userPic)
+                                    parent.$('.user_info').children('span').html(
+                                        `欢迎&nbsp;&nbsp;${data.data.nickname}`)
+                                    parent.$('.user_center_link>img').attr('src', data
+                                        .data
+                                        .userPic)
+                                }
+                                // console.log(data);
+                            }
+                        })
+                    }
+
+
+                }
+            })
+        })
+
+    })
+</script>
 
 </html>
