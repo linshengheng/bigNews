@@ -27,14 +27,14 @@
                 <div class="col-xs-6">
                     <form class="form-inline">
                         <select id="selCategory" name="" class="form-control input-sm">
-              <option value="">所有分类</option>
+                            <option value="">所有分类</option>
 
-            </select>
+                        </select>
                         <select id="selStatus" name="" class="form-control input-sm">
-              <option value="">所有状态</option>
-              <option value="草稿">草稿</option>
-              <option value="已发布">已发布</option>
-            </select>
+                            <option value="">所有状态</option>
+                            <option value="草稿">草稿</option>
+                            <option value="已发布">已发布</option>
+                        </select>
                         <button id="btnSearch" class="btn btn-default btn-sm">筛选</button>
                     </form>
                 </div>
@@ -81,7 +81,7 @@
         <th class="text-center">{{v.date}}</th>
         <th class="text-center">{{v.state}}</th>
         <th class="text-center" width="100">
-            <a href="article_edit.html" class="btn btn-primary btn-xs">编辑</a>
+            <a href="article_edit.html?id={{v.id}}" class="btn btn-primary btn-xs">编辑</a>
             <a href="javascript:void(0)" data-id="{{v.id}}" class="btn btn-danger btn-xs delete">删除</a>
         </th>
     </tr>
@@ -89,6 +89,7 @@
 </script>
 <script>
     $(function() {
+
         //获取列表
         $.ajax({
                 type: 'get',
@@ -124,7 +125,8 @@
                             //分页插件total
                         if (backData.data.totalPage != 0) {
                             page()
-                            $('#pagination').twbsPagination('changeTotalPages', backData.data.totalPage, 1)
+                            $('#pagination').twbsPagination('changeTotalPages', backData.data
+                                .totalPage, 1)
                             $('#pagination').show().siblings().hide()
                         } else {
                             $('#pagination').hide().siblings().show()
@@ -133,7 +135,6 @@
                 }
             })
         })
-        $('#btnSearch').click()
 
         function page() {
             window.pagObj = $('#pagination').twbsPagination({
@@ -141,26 +142,83 @@
                 visiblePages: 6,
                 onPageClick: function(event, page) {
                     console.info(page + ' (from options)');
-                    $.ajax({
-                        type: 'get',
-                        url: BigNew.article_query,
-                        data: {
-                            key: '',
-                            type: $('#selCategory').val(),
-                            state: $('#selStatus').val(),
-                            page: page,
-                            perpage: ''
-                        },
-                        success(backData) {
-                            if (backData.code == 200) {
-                                let res = template('content', backData)
-                                $('tbody').html(res)
-                            }
-                        }
-                    })
+                    newPage = page
+                    ajax(newPage)
                 }
             })
         }
+
+        $('#btnSearch').click()
+            //分页
+        let newPage = 0
+        let totalPage = 0
+
+        function ajax(newPage, callback) {
+            $.ajax({
+                type: 'get',
+                url: BigNew.article_query,
+                data: {
+                    key: '',
+                    type: $('#selCategory').val(),
+                    state: $('#selStatus').val(),
+                    page: newPage,
+                    perpage: ''
+                },
+                success(backData) {
+                    console.log(backData)
+                    if (backData.code == 200) {
+                        let res = template('content', backData)
+                        $('tbody').html(res)
+                        if (callback && backData.data.totalPage != 0) {
+                            callback(backData.data.totalPage)
+                        } else {
+                            console.log(111);
+                        }
+
+                        if (newPage - backData.data.totalPage == 1) {
+                            if (newPage == 1) {
+                                $('#pagination').hide().siblings().show()
+                            } else {
+                                $('#pagination').twbsPagination('changeTotalPages', backData.data
+                                    .totalPage,
+                                    backData.data.totalPage)
+                            }
+                        }
+
+                    }
+                }
+            })
+        }
+
+        // 删除功能
+        $('tbody').on('click', '.delete', function() {
+            console.log(newPage);
+            if (confirm('你确定要删除吗')) {
+                $.ajax({
+                    type: 'post',
+                    url: BigNew.article_delete,
+                    data: {
+                        id: $(this).attr('data-id')
+                    },
+                    success(backData) {
+                        if (backData.code == 204) {
+                            ajax(newPage, function(data) {
+                                $('#pagination').twbsPagination('changeTotalPages',
+                                    data,
+                                    newPage)
+                            })
+                        }
+                    }
+                })
+            }
+
+        })
+        $('#release_btn').on('click', function() {
+            parent.$('.release').click()
+
+        })
+
+
     })
 </script>
 
