@@ -38,11 +38,6 @@
                 <ul class="level_two">
                     <li class="up"></li>
                     <li><a href="./list.html">最 新</a></li>
-                    <li><a href="./list.html">科 技</a></li>
-                    <li><a href="./list.html">股 市</a></li>
-                    <li><a href="./list.html">商 品</a></li>
-                    <li><a href="./list.html">外 汇</a></li>
-                    <li><a href="./list.html">公 司</a></li>
                 </ul>
             </div>
             <ul class="left_menu fl">
@@ -295,6 +290,13 @@
     <li><a href="./article.html?id={{v.id}}">{{v.intro}}</a></li>
     {{/each}}
 </script>
+<!-- 文章分类 -->
+<script type="text/html" id="category">
+    <li class="up"></li>
+    {{each data v}}
+    <li><a href="./list.html?id={{v.id}}">{{v.name}}</a></li>
+    {{/each}}
+</script>
 <script>
     $(function() {
         //最新咨询
@@ -347,12 +349,24 @@
             })
             //焦点关注
         $.ajax({
+                type: 'get',
+                url: 'http://localhost:8080/api/v1/index/attention',
+                success(backData) {
+                    console.log(backData);
+                    let res = template('guanzhu', backData)
+                    $('.guanzhu_list').html(res)
+                }
+            })
+            //文章类型
+        $.ajax({
             type: 'get',
-            url: 'http://localhost:8080/api/v1/index/attention',
+            url: 'http://localhost:8080/api/v1/index/category',
             success(backData) {
                 console.log(backData);
-                let res = template('guanzhu', backData)
-                $('.guanzhu_list').html(res)
+                let res = template('category', backData)
+                $('.level_two').html(res)
+                $('.left_menu').html(res)
+                $('.left_menu').children('li').eq(0).remove()
             }
         })
 
